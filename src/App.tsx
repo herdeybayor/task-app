@@ -1,5 +1,5 @@
 import React from "react";
-import { DragDropContext, DropResult } from "react-beautiful-dnd";
+import { DragDropContext, DragUpdate, DropResult } from "react-beautiful-dnd";
 
 import initialData from "./initial-data";
 import Column from "./Column";
@@ -7,7 +7,21 @@ import Column from "./Column";
 function App() {
     const [data, setData] = React.useState(initialData);
 
+    const onDragStart = () => {
+        document.body.style.color = "orange";
+        document.body.style.transition = "background-color 0.2s ease";
+    };
+
+    const onDragUpdate = (update: DragUpdate) => {
+        const { destination } = update;
+        const opacity = destination ? destination.index / Object.keys(data.tasks).length : 0;
+        document.body.style.backgroundColor = `rgba(153, 141, 217, ${opacity})`;
+    };
+
     const onDragEnd = ({ destination, source, draggableId }: DropResult) => {
+        document.body.style.color = "inherit";
+        document.body.style.backgroundColor = "inherit";
+
         if (!destination) return;
         if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
@@ -63,13 +77,16 @@ function App() {
         }
     };
     return (
-        <DragDropContext onDragEnd={onDragEnd}>
-            {data.columnOrder.map((columnId) => {
-                const column = data.columns[columnId];
-                const tasks = column.taskIds.map((taskId) => data.tasks[taskId]);
+        <DragDropContext onDragStart={onDragStart} onDragUpdate={onDragUpdate} onDragEnd={onDragEnd}>
+            <h1 className="col-span-3 text-4xl text-center">Sherifdeen's Board</h1>
+            <div className="grid grid-cols-3 gap-4">
+                {data.columnOrder.map((columnId) => {
+                    const column = data.columns[columnId];
+                    const tasks = column.taskIds.map((taskId) => data.tasks[taskId]);
 
-                return <Column key={column.id} column={column} tasks={tasks} />;
-            })}
+                    return <Column key={column.id} column={column} tasks={tasks} />;
+                })}
+            </div>
         </DragDropContext>
     );
 }
